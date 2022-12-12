@@ -2,6 +2,7 @@
   <n-message-provider>
     <message-handler/>
   </n-message-provider>
+  <!-- Error -->
   <n-layout v-if="!success">
     <n-result
         status="error"
@@ -18,7 +19,10 @@
 
    <n-layout style="height: 100vh">
      <br>
-     <n-grid  x-gap="12"  cols="2 s:3 m:4 l:5 xl:6 2xl:7" responsive="screen">
+     <!-- SM Size has 1 column -->
+     <!-- XL Size has 2 column(Desktop&tablet) -->
+     <!-- Topbar -->
+     <n-grid   cols="xl:2 sm:1" responsive="screen">
        <n-grid-item>
          <n-card title="Create Objects">
            <n-button-group>
@@ -61,9 +65,39 @@
          </n-card>
        </n-grid-item>
      </n-grid>
-     <canvas id="canvas" width="500px" height="500px" style="border: solid;">
+     <!-- Canva Frame-->
+     <n-card title="Canva">
+       <n-grid cols="2 sm:1 xl:2">
+         <n-grid-item>
 
-     </canvas>
+             <canvas id="canvas" width="500px" height="500px" style="border: solid; "  @contextmenu="handleRightMenu" >
+
+             </canvas>
+
+         </n-grid-item>
+         <n-grid-item>
+
+           <n-card title="Properties">
+             <n-list-item v-for="(item) in currentObjectPropties" :key="item" >
+               <a>{{item.name}}</a>
+               <n-input v-if="vaildateInput(item.value)" :placeholder="item.name" v-model:value="item.value" @blur="modifyObjectProp(item.name,item.value)"  ></n-input>
+             </n-list-item>
+           </n-card>
+
+         </n-grid-item>
+
+       </n-grid>
+     </n-card>
+     <!-- Right Click Menu -->
+     <n-dropdown
+         placement="bottom-start"
+         trigger="manual"
+         :x="rightClickProps.x"
+         :y="rightClickProps.y"
+         :options="rightClickMenu"
+         :show="rightClick"
+         :on-clickoutside="rightClick = false"
+     />
    </n-layout>
     <!--Modals-->
     <n-modal v-model:show="uploadModal">
@@ -133,11 +167,13 @@
   />
 </template>
 <script>
-import {  NAlert,NTabPane,NTabs,NIcon,NButton , darkTheme,NConfigProvider,NButtonGroup,NCard,NGrid,NGridItem,NLayout,NMessageProvider,NResult,NModal, NUpload,NUploadDragger} from 'naive-ui'
+import {  NInput,NAlert,NTabPane,NTabs,NIcon,NButton , darkTheme,NConfigProvider,NButtonGroup,NCard,NGrid,NGridItem,NLayout,NMessageProvider,NResult,NModal, NUpload,NUploadDragger} from 'naive-ui'
+import { nextTick } from 'vue'
 import messageHandler from './components/content'
 import axios from 'axios'
 import { fabric } from 'fabric'
 let canvas = undefined
+
 const convertBase64 = (file) => {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader();
@@ -158,6 +194,7 @@ export default {
   name: 'IMGEditor',
 
   components: {
+    NInput,
     NButton,
     NButtonGroup,
     NConfigProvider,
@@ -236,7 +273,7 @@ export default {
             item.onFinish()
             window.$message.success(`Uploaded! Delete Hash: ${res.data.data.deletehash} Delete Hash is Important if you want delete asset`,{ duration: 10000 })
             fabric.Image.fromURL(data.link, function(myImg) {
-              //i create an extra var for to change some image properties
+
               var img1 = myImg.set({ left: 100, top: 100, angle: 0 })
              canvas.add(img1)
             })
@@ -257,6 +294,36 @@ export default {
         })
 
 
+    },
+    handleRightMenu(){
+      event.preventDefault()
+      this.rightClick = false
+     nextTick().then(() => {
+       this.rightClick = true
+       this.rightClickProps = {
+         x: event.clientX,
+         y: event.clientY
+       }
+     })
+
+    },
+    modifyObjectProp(name,value){
+      let object = canvas.getActiveObject()
+      if (object) {
+         if (object[name]) {
+           object[name] = value
+           window.$message.success("Edited!")
+         } else {
+           window.$message.warning("Failed to Edit Object")
+         }
+      }
+    },
+    vaildateInput(value){
+      if (value == undefined || null) {
+        return false
+      } else {
+        return true
+      }
     }
   },
   data() {
@@ -265,6 +332,19 @@ export default {
       success: true,
       errorModal: false,
       uploadModal: false,
+      rightClick: false,
+      rightClickProps: {
+        x: 0,
+        y: 0,
+      },
+      currentTextObjectValue: "",
+      rightClickMenu: [
+        {
+          text: "Delete",
+          key: "delete",
+        }
+      ],
+      currentObjectPropties: []
     }
   },
   mounted() {
@@ -275,6 +355,21 @@ export default {
     let it = new fabric.IText('Hello World', { left: 100, top: 100 })
     it.set({fill: "#fff"})
     canvas.add(it)
+    canvas.on('object:modified', () => {
+      let activeObject = canvas.getActiveObject()
+      if (activeObject) {
+        let textObjectPropties =   ['angle', 'backgroundColor', 'clipTo', 'fill', 'fillRule', 'flipX', 'flipY', 'fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'globalCompositeOperation', 'height', 'id', 'left', 'letterSpace', 'lineHeight', 'opacity', 'originX', 'originY', 'path', 'scaleX', 'scaleY', 'shadow', 'stroke', 'strokeDashArray', 'strokeLineCap', 'strokeLineJoin', 'strokeMiterLimit', 'strokeWidth', 'text', 'textAlign', 'textBackgroundColor', 'textDecoration', 'top', 'transformMatrix', 'useNative', 'visible', 'width'];
+        let objectPropties = []
+        for (let i = 0; i < textObjectPropties.length; i++) {
+         objectPropties.push({
+           name: textObjectPropties[i],
+           value: activeObject[textObjectPropties[i]]
+         })
+
+        }
+        this.currentObjectPropties = objectPropties
+      }
+    });
     console.log(this.$route)
 
     if (!window.localStorage.getItem(this.$route.query.project)){
