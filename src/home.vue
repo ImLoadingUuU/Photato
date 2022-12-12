@@ -3,50 +3,64 @@
     <message-handler/>
   </n-message-provider>
   <n-config-provider :theme="theme" >
-    <n-layout has-sider style="height: 300vw">
-      <n-layout-sider show-trigger :inverted="true">
-        <n-menu
+    <n-layout has-sider style="height: 100vh">
+      <n-layout has-sider>
+        <n-layout-sider
+            bordered
+            collapse-mode="width"
             :collapsed-width="64"
-            :collapsed-icon-size="22"
-            :options="menuOptions"
+            :width="240"
+            :collapsed="collapsed"
+            show-trigger
+            @collapse="collapsed = true"
+            @expand="collapsed = false"
         >
+          <n-menu
+              v-model:value="activeKey"
+              :collapsed="collapsed"
+              :collapsed-width="64"
+              :collapsed-icon-size="22"
+              :options="menuOptions"
+          />
+        </n-layout-sider>
+        <n-layout>
 
-        </n-menu>
-      </n-layout-sider>
+          <n-layout>
+            <h1>Welcome to Potato!</h1>
+            <n-button @click="createProject = true" >Create Project</n-button>
+            <br>
+            <hr>
+            <h1>Projects</h1>
+            <p>Project will be saved in LocalStorage</p>
+            <n-alert title="No Project Founds" type="info" v-if="!getLocalStoage('projectList')">
 
-      <n-layout>
-        <h1>Welcome to Potato!</h1>
-        <n-button @click="createProject = true" >Create Project</n-button>
-        <br>
-        <hr>
-        <h1>Projects</h1>
-        <p>Project will be saved in LocalStorage</p>
-        <n-alert title="No Project Founds" type="info" v-if="!getLocalStoage('projectList')">
+              Theres no Project Founds,Did you cleared your Browser Data?
+              <n-button>Create New Project!</n-button>
+            </n-alert>
+            <n-alert title="Loaded" type="success" v-if="getLocalStoage('projectList')">
+              Saves Has Been Founded in LocalStorage
+            </n-alert>
+            <div v-if="getLocalStoage('projectList')">
+              <n-list>
 
-          Theres no Project Founds,Did you cleared your Browser Data?
-          <n-button>Create New Project!</n-button>
-        </n-alert>
-        <n-alert title="Loaded" type="success" v-if="getLocalStoage('projectList')">
-          Saves Has Been Founded in LocalStorage
-        </n-alert>
-        <div v-if="getLocalStoage('projectList')">
-          <n-list>
+                <n-list-item v-for="(data,index) in getLocalStoageAsJSON('projectList').projects" :key="index">
+                  <template #suffix>
+                    <n-button @click="$router.push({ path: 'edit', query: { project: data.fileName }})">Load</n-button>
+                    <n-button @click="deleteObject(data.name)" type="error">Delete</n-button>
+                  </template>
+                  <n-thing :title="data.name" :title-extra="data.time" description="description">
 
-            <n-list-item v-for="(data,index) in getLocalStoageAsJSON('projectList').projects" :key="index">
-              <template #suffix>
-                <n-button @click="$router.push({ path: 'edit', query: { project: data.fileName }})">Load</n-button>
-                <n-button @click="deleteObject(data.name)" type="error">Delete</n-button>
-              </template>
-              <n-thing :title="data.name" :title-extra="data.time" description="description">
-
-              </n-thing>
-            </n-list-item>
+                  </n-thing>
+                </n-list-item>
 
 
-          </n-list>
-        </div>
+              </n-list>
+            </div>
+          </n-layout>
+        </n-layout>
+        </n-layout>
       </n-layout>
-    </n-layout>
+
     <n-modal v-model:show="createProject" preset="dialog" title="Dialog">
       <template #header>
         <div>New Project</div>
@@ -58,7 +72,7 @@
       <br>
       <n-input placeholder="Project Size X" required  v-model:value="prX" />
       <br>
-      <n-select v-model:value="value" placeholder="Select a Presets" :options="options" />
+      <n-select v-model:value="presets" placeholder="Select a Presets" :options="options" />
       <br>
       <template #action>
         <n-button type="success" @click="createNewProject()">Create</n-button>
@@ -70,7 +84,7 @@
 
 <script>
 
-import { NButton , NMenu,NLayout,NModal,NInput,darkTheme,NConfigProvider,NListItem,NList,NAlert,NThing,NSelect,NMessageProvider} from 'naive-ui'
+import { NButton ,NLayout,NModal,NInput,darkTheme,NConfigProvider,NListItem,NList,NAlert,NThing,NSelect,NMessageProvider,NLayoutSider,NMenu} from 'naive-ui'
 import messageHandler from './components/content'
 const menuOptions = [
   {
@@ -101,6 +115,7 @@ export default {
       prName: "Simple Thing",
       prX: 0,
       prY: 0,
+      presets: "",
       options: [
         {
           label: "only in ohio",
@@ -123,6 +138,9 @@ export default {
         fileName: this.prName,
         time: new Date().toLocaleString("en-US")
       })
+      if (this.presets) {
+        localStorage.setItem(this.prName, JSON.stringify(require("./ohio.json")))
+      }
       localStorage.setItem("projectList",JSON.stringify(plist))
       location.reload()
     },
@@ -159,7 +177,6 @@ export default {
   },
   components: {
     NButton,
-    NMenu,
     NLayout,
     NModal,
     NInput,
@@ -170,7 +187,9 @@ export default {
     NThing,
     NSelect,
     NMessageProvider,
-    messageHandler
+    messageHandler,
+    NLayoutSider,
+    NMenu
   }
 }
 </script>
