@@ -60,6 +60,11 @@
                  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 16 16"><g fill="none"><path d="M4 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1V9.5A1.5 1.5 0 0 1 5.5 8h5A1.5 1.5 0 0 1 12 9.5V13a1 1 0 0 0 1-1V5.621a1 1 0 0 0-.293-.707l-1.621-1.621A1 1 0 0 0 10.379 3H10v1.5A1.5 1.5 0 0 1 8.5 6h-2A1.5 1.5 0 0 1 5 4.5V3H4zm2 0v1.5a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5V3H6zm5 10V9.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0-.5.5V13h6zM2 4a2 2 0 0 1 2-2h6.379a2 2 0 0 1 1.414.586l1.621 1.621A2 2 0 0 1 14 5.621V12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4z" fill="currentColor"></path></g></svg>
                </n-icon>
              </n-button>
+             <n-button @click="exportModal = true" >
+                    <n-icon>
+                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 576 512"><path d="M384 121.9c0-6.3-2.5-12.4-7-16.9L279.1 7c-4.5-4.5-10.6-7-17-7H256v128h128zM571 308l-95.7-96.4c-10.1-10.1-27.4-3-27.4 11.3V288h-64v64h64v65.2c0 14.3 17.3 21.4 27.4 11.3L571 332c6.6-6.6 6.6-17.4 0-24zm-379 28v-32c0-8.8 7.2-16 16-16h176V160H248c-13.2 0-24-10.8-24-24V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V352H208c-8.8 0-16-7.2-16-16z" fill="currentColor"></path></svg>
+                    </n-icon>
+             </n-button>
 
            </n-button-group>
          </n-card>
@@ -79,8 +84,17 @@
 
            <n-card title="Properties">
              <n-list-item v-for="(item) in currentObjectPropties" :key="item" >
-               <a>{{item.name}}</a>
-               <n-input v-if="vaildateInput(item.value)" :placeholder="item.name" v-model:value="item.value" @blur="modifyObjectProp(item.name,item.value)"  ></n-input>
+              <div v-if="vaildateInput(item.value)">
+               <a>
+                  {{item.name}} - {{item.typeOf}}
+               </a>                <n-input :placeholder="item.name" v-if="item.typeOf == 'string'"  v-model:value="item.value" @blur="modifyObjectProp(item.name,item.value)"  >
+                  {{item.name}}
+                </n-input>
+                <n-checkbox v-model:checked="item.value" v-if="item.typeOf == 'boolean'" @update:checked="modifyObjectProp(item.name,item.value)" />
+                <n-input-number v-model:value="item.value"  v-if="item.typeOf == 'number'" @blur="modifyObjectProp(item.name,item.value)" clearable />
+              </div>
+
+
              </n-list-item>
            </n-card>
 
@@ -154,6 +168,52 @@
         </template>
       </n-card>
     </n-modal>
+    <!-- Export Menu-->
+    <n-modal v-model:show="exportModal">
+      <n-card
+          title="Export to File"
+          :bordered="false"
+          size="huge"
+          role="dialog"
+          aria-modal="true"
+          style="width: 600px"
+      >
+        <template #header-extra>
+          Click outside the modal to close.
+        </template>
+        <n-tabs type="line" animated>
+
+          <n-tab-pane name="export" tab="Export">
+           <n-button-group>
+
+             <n-button @click="exportData('png')">
+               <n-icon>
+                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32"><path d="M30 23h-6a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h6v2h-6v10h4v-4h-2v-2h4z" fill="currentColor"></path><path d="M18 19L14.32 9H12v14h2V13l3.68 10H20V9h-2v10z" fill="currentColor"></path><path d="M4 23H2V9h6a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H4zm0-7h4v-5H4z" fill="currentColor"></path></svg>
+               </n-icon>
+               Export as PNG
+             </n-button>
+             <n-button @click="exportData('jpg')">
+               <n-icon>
+                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32"><path d="M30 23h-6a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h6v2h-6v10h4v-4h-2v-2h4z" fill="currentColor"></path><path d="M14 23h-2V9h6a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-4zm0-7h4v-5h-4z" fill="currentColor"></path><path d="M8 23H4a2 2 0 0 1-2-2v-2h2v2h4V9h2v12a2 2 0 0 1-2 2z" fill="currentColor"></path></svg>
+               </n-icon>
+               Export as JPG
+             </n-button>
+             <n-button @click="exportData('webp')">
+               <n-icon>
+                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 384 512"><path d="M384 121.941V128H256V0h6.059a24 24 0 0 1 16.97 7.029l97.941 97.941a24.002 24.002 0 0 1 7.03 16.971zM248 160c-13.2 0-24-10.8-24-24V0H24C10.745 0 0 10.745 0 24v464c0 13.255 10.745 24 24 24h336c13.255 0 24-10.745 24-24V160H248zm-135.455 16c26.51 0 48 21.49 48 48s-21.49 48-48 48s-48-21.49-48-48s21.491-48 48-48zm208 240h-256l.485-48.485L104.545 328c4.686-4.686 11.799-4.201 16.485.485L160.545 368L264.06 264.485c4.686-4.686 12.284-4.686 16.971 0L320.545 304v112z" fill="currentColor"></path></svg>
+               </n-icon>
+               Export as WEBP
+             </n-button>
+
+           </n-button-group>
+          </n-tab-pane>
+        </n-tabs>
+
+        <template #footer>
+          Drag your files to here
+        </template>
+      </n-card>
+    </n-modal>
   </n-config-provider>
   <n-modal
       v-model:show="errorModal"
@@ -167,7 +227,7 @@
   />
 </template>
 <script>
-import {  NInput,NAlert,NTabPane,NTabs,NIcon,NButton , darkTheme,NConfigProvider,NButtonGroup,NCard,NGrid,NGridItem,NLayout,NMessageProvider,NResult,NModal, NUpload,NUploadDragger} from 'naive-ui'
+import { NInputNumber, NInput,NAlert,NTabPane,NCheckbox,NTabs,NIcon,NButton , darkTheme,NConfigProvider,NButtonGroup,NCard,NGrid,NGridItem,NLayout,NMessageProvider,NResult,NModal, NUpload,NUploadDragger} from 'naive-ui'
 import { nextTick } from 'vue'
 import messageHandler from './components/content'
 import axios from 'axios'
@@ -211,7 +271,9 @@ export default {
     NUploadDragger,
     NTabs,
     NTabPane,
-    NAlert
+    NAlert,
+    NCheckbox,
+    NInputNumber
 
   },
 
@@ -305,7 +367,19 @@ export default {
          y: event.clientY
        }
      })
+    },
+    exportData(format) {
+     let url = canvas.toDataURL()
 
+      function download(url,name){
+// make the link. set the href and download. emulate dom click
+        let a = document.createElement('a')
+
+        a.setAttribute("href",url)
+        a.setAttribute("download",name)
+        a.click()
+      }
+      download(url,`${this.$route.query.project}_${Date.now()}.${format}`)
     },
     modifyObjectProp(name,value){
       let object = canvas.getActiveObject()
@@ -333,6 +407,7 @@ export default {
       errorModal: false,
       uploadModal: false,
       rightClick: false,
+      exportModal: false,
       rightClickProps: {
         x: 0,
         y: 0,
@@ -348,9 +423,37 @@ export default {
     }
   },
   mounted() {
+
+    let prList = JSON.parse(window.localStorage.getItem("projectList")).projects
+    window.$message.info("Resizing Canvas...")
+    let fWidth = 0
+    let fHeight = 0
+    for (let i = 0; i < prList.length; i++)  {
+      if (prList[i].name == this.$route.query.project) {
+        let pt = prList[i]
+        window.$message.info("Resizing Canvas to " + pt.x + "x" + pt.y)
+        if (pt.width == 0 || pt.height == 0) {
+          window.$message.warning("Project Size is 0, Setting to 500x500")
+          fHeight = 500
+          fWidth = 500
+          document.getElementById("canvas").width = 500
+          document.getElementById("canvas").height = 500
+        } else {
+          fWidth = pt.x
+          fHeight = pt.y
+          window.$message.success("Resized Canva")
+          document.getElementById("canvas").width = prList[i].x
+          document.getElementById("canvas").height = prList[i].y
+        }
+
+
+
+      }
+    }
+
     canvas = new fabric.Canvas("canvas",{
-      width: 500,
-      height: 500,
+      width: fWidth,
+      height: fHeight,
     })
     let it = new fabric.IText('Hello World', { left: 100, top: 100 })
     it.set({fill: "#fff"})
@@ -363,7 +466,8 @@ export default {
         for (let i = 0; i < textObjectPropties.length; i++) {
          objectPropties.push({
            name: textObjectPropties[i],
-           value: activeObject[textObjectPropties[i]]
+           value: activeObject[textObjectPropties[i]],
+           typeOf: typeof(activeObject[textObjectPropties[i]])
          })
 
         }
@@ -380,11 +484,14 @@ export default {
       window.$message.success('Project Created - Version:' + canvas.version)
     } else {
       let item = window.localStorage.getItem(this.$route.query.project)
+
       window.$message.info("Loading your Project")
-     try {
+
+      try {
        canvas.loadFromJSON(JSON.parse(item),function(){
          window.$message.success('Project Loaded')
        })
+
      } catch {
        window.$message.error('Project Failed to Load - File Structure Corrupted')
        this.success =false

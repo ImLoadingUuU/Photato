@@ -79,12 +79,37 @@
         <n-button type="error" @click="createProject = false">Dont Create</n-button>
       </template>
     </n-modal>
+
+    <!--Update Form-->
+    <n-modal v-model:show="updateModal">
+      <n-card
+          style="width: 600px"
+          title="Photato Update"
+          :bordered="false"
+          size="huge"
+          role="dialog"
+          aria-modal="true"
+      >
+        <template #header-extra>
+          {{  version }}
+        </template>
+        <h1>In Photato {{ version }} Added</h1>
+        <hr>
+        - Better Properties Edit
+        <br>
+        - Image Export (btw theres no annoying water mark)
+
+        <template #footer>
+          Thanks your reading.Click outside the modal to close
+        </template>
+      </n-card>
+    </n-modal>
   </n-config-provider>
 </template>
 
 <script>
 
-import { NButton ,NLayout,NModal,NInput,darkTheme,NConfigProvider,NListItem,NList,NAlert,NThing,NSelect,NMessageProvider,NLayoutSider,NMenu} from 'naive-ui'
+import { NCard,NButton ,NLayout,NModal,NInput,darkTheme,NConfigProvider,NListItem,NList,NAlert,NThing,NSelect,NMessageProvider,NLayoutSider,NMenu} from 'naive-ui'
 import messageHandler from './components/content'
 const menuOptions = [
   {
@@ -103,6 +128,7 @@ const menuOptions = [
     icon: () => <ContactsOutlined />
   }
 ]
+const version = "0.061"
 
 export default {
 
@@ -116,6 +142,8 @@ export default {
       prX: 0,
       prY: 0,
       presets: "",
+      version: version,
+      updateModal: true,
       options: [
         {
           label: "only in ohio",
@@ -189,7 +217,8 @@ export default {
     NMessageProvider,
     messageHandler,
     NLayoutSider,
-    NMenu
+    NMenu,
+    NCard
   }
 }
 </script>
